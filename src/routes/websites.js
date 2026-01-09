@@ -38,7 +38,7 @@ router.post('/add', [
     body('url').trim().isURL().withMessage('Please enter a valid URL'),
     body('check_interval').isInt({ min: 1, max: 60 }).withMessage('Check interval must be between 1 and 60 minutes'),
     body('expected_status_codes').trim().notEmpty().withMessage('At least one status code is required')
-], (req, res) => {
+], async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         return res.render('websites/add', {
@@ -62,10 +62,17 @@ router.post('/add', [
     }
 
     try {
-        db.prepare(`
+        const result = db.prepare(`
             INSERT INTO websites (user_id, name, url, check_interval, expected_status_codes)
             VALUES (?, ?, ?, ?, ?)
         `).run(req.session.userId, name, url, check_interval, expected_status_codes);
+
+        // Perform initial check immediately so status is accurate from the start
+        try {
+            await checkWebsiteNow(result.lastInsertRowid);
+        } catch (checkError) {
+            console.error('Initial check failed:', checkError.message);
+        }
 
         res.redirect('/websites');
     } catch (error) {
