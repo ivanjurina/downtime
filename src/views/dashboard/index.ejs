@@ -1,0 +1,142 @@
+<%- include('../partials/header') %>
+
+<div class="container">
+    <div class="dashboard-header">
+        <h1>Dashboard</h1>
+        <a href="/websites/add" class="btn btn-primary">Add Website</a>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-value"><%= stats.total %></div>
+            <div class="stat-label">Total Websites</div>
+        </div>
+        <div class="stat-card stat-up">
+            <div class="stat-value"><%= stats.up %></div>
+            <div class="stat-label">Up</div>
+        </div>
+        <div class="stat-card stat-down">
+            <div class="stat-value"><%= stats.down %></div>
+            <div class="stat-label">Down</div>
+        </div>
+    </div>
+
+    <% if (websites.length === 0) { %>
+        <div class="empty-state">
+            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+            <h2>No websites yet</h2>
+            <p>Add your first website to start monitoring.</p>
+            <a href="/websites/add" class="btn btn-primary">Add Website</a>
+        </div>
+    <% } else { %>
+        <!-- Websites Grid -->
+        <div class="section">
+            <h2>Your Websites</h2>
+            <div class="website-grid">
+                <% websites.forEach(website => { %>
+                    <div class="website-card <%= website.is_up ? 'up' : 'down' %>">
+                        <div class="website-status">
+                            <span class="status-indicator <%= website.is_up ? 'status-up' : 'status-down' %>"></span>
+                            <%= website.is_up ? 'Up' : 'Down' %>
+                        </div>
+                        <h3><a href="/websites/<%= website.id %>"><%= website.name %></a></h3>
+                        <p class="website-url"><%= website.url %></p>
+                        <div class="website-stats">
+                            <div class="website-stat">
+                                <span class="stat-label">Uptime</span>
+                                <span class="stat-value"><%= website.uptime %>%</span>
+                            </div>
+                            <div class="website-stat">
+                                <span class="stat-label">Avg Response</span>
+                                <span class="stat-value"><%= website.avg_response_time %>ms</span>
+                            </div>
+                        </div>
+                        <div class="website-actions">
+                            <a href="/websites/<%= website.id %>" class="btn btn-sm">View Details</a>
+                            <button class="btn btn-sm btn-outline check-now" data-id="<%= website.id %>">Check Now</button>
+                        </div>
+                    </div>
+                <% }) %>
+            </div>
+        </div>
+
+        <!-- Recent Alerts -->
+        <% if (recentAlerts.length > 0) { %>
+            <div class="section">
+                <h2>Recent Alerts</h2>
+                <div class="alerts-list">
+                    <% recentAlerts.forEach(alert => { %>
+                        <div class="alert-item <%= alert.alert_type %>">
+                            <span class="alert-icon">
+                                <% if (alert.alert_type === 'down') { %>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+                                <% } else { %>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                                <% } %>
+                            </span>
+                            <div class="alert-content">
+                                <strong><%= alert.website_name %></strong>
+                                <span><%= alert.message %></span>
+                            </div>
+                            <span class="alert-time"><%= new Date(alert.sent_at).toLocaleString() %></span>
+                        </div>
+                    <% }) %>
+                </div>
+            </div>
+        <% } %>
+
+        <!-- Chart Section -->
+        <% if (chartData.length > 0) { %>
+            <div class="section">
+                <h2>Last 24 Hours</h2>
+                <div class="chart-container">
+                    <canvas id="uptimeChart"></canvas>
+                </div>
+            </div>
+            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+            <script>
+                const chartData = <%- JSON.stringify(chartData) %>;
+                const ctx = document.getElementById('uptimeChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: chartData.map(d => {
+                            const date = new Date(d.hour);
+                            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                        }),
+                        datasets: [{
+                            label: 'Avg Response Time (ms)',
+                            data: chartData.map(d => Math.round(d.avg_response || 0)),
+                            borderColor: '#3498db',
+                            backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                            fill: true,
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'top'
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Response Time (ms)'
+                                }
+                            }
+                        }
+                    }
+                });
+            </script>
+        <% } %>
+    <% } %>
+</div>
+
+<%- include('../partials/footer') %>

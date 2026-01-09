@@ -1,0 +1,51 @@
+<%- include('../partials/header') %>
+
+<div class="container">
+    <div class="page-header">
+        <h1>Add Website</h1>
+    </div>
+
+    <div class="form-container">
+        <% if (errors && errors.length > 0) { %>
+            <div class="alert alert-error">
+                <% errors.forEach(error => { %>
+                    <p><%= error.msg %></p>
+                <% }) %>
+            </div>
+        <% } %>
+
+        <form action="/websites/add" method="POST">
+            <div class="form-group">
+                <label for="name">Website Name</label>
+                <input type="text" id="name" name="name" value="<%= formData.name || '' %>" placeholder="My Website" required>
+                <small>A friendly name to identify this website</small>
+            </div>
+
+            <div class="form-group">
+                <label for="url">URL</label>
+                <input type="url" id="url" name="url" value="<%= formData.url || '' %>" placeholder="https://example.com" required>
+                <small>The full URL to monitor (including https://)</small>
+            </div>
+
+            <div class="form-group">
+                <label for="check_interval">Check Interval (minutes)</label>
+                <select id="check_interval" name="check_interval">
+                    <option value="1" <%= formData.check_interval == 1 ? 'selected' : '' %>>Every 1 minute</option>
+                    <option value="5" <%= formData.check_interval == 5 || !formData.check_interval ? 'selected' : '' %>>Every 5 minutes</option>
+                    <option value="10" <%= formData.check_interval == 10 ? 'selected' : '' %>>Every 10 minutes</option>
+                    <option value="15" <%= formData.check_interval == 15 ? 'selected' : '' %>>Every 15 minutes</option>
+                    <option value="30" <%= formData.check_interval == 30 ? 'selected' : '' %>>Every 30 minutes</option>
+                    <option value="60" <%= formData.check_interval == 60 ? 'selected' : '' %>>Every 60 minutes</option>
+                </select>
+                <small>How often to check if your website is up</small>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Add Website</button>
+                <a href="/websites" class="btn btn-outline">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>

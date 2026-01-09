@@ -1,0 +1,159 @@
+<%- include('../partials/header') %>
+
+<div class="container">
+    <div class="page-header">
+        <div class="header-left">
+            <a href="/websites" class="back-link">&larr; Back to Websites</a>
+            <h1>
+                <span class="status-indicator <%= website.is_up ? 'status-up' : 'status-down' %>"></span>
+                <%= website.name %>
+            </h1>
+            <p class="website-url"><a href="<%= website.url %>" target="_blank"><%= website.url %></a></p>
+        </div>
+        <div class="header-actions">
+            <button class="btn btn-outline check-now" data-id="<%= website.id %>">Check Now</button>
+            <a href="/websites/<%= website.id %>/edit" class="btn btn-primary">Edit</a>
+        </div>
+    </div>
+
+    <!-- Status Card -->
+    <div class="status-card-large <%= website.is_up ? 'up' : 'down' %>">
+        <div class="status-main">
+            <span class="status-text"><%= website.is_up ? 'Website is UP' : 'Website is DOWN' %></span>
+            <% if (website.last_checked_at) { %>
+                <span class="last-checked">Last checked: <%= new Date(website.last_checked_at).toLocaleString() %></span>
+            <% } %>
+        </div>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="stats-grid four-cols">
+        <div class="stat-card">
+            <div class="stat-value"><%= stats.uptime %>%</div>
+            <div class="stat-label">Uptime</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value"><%= stats.avg_response_time %>ms</div>
+            <div class="stat-label">Avg Response</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value"><%= stats.min_response_time %>ms</div>
+            <div class="stat-label">Min Response</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value"><%= stats.max_response_time %>ms</div>
+            <div class="stat-label">Max Response</div>
+        </div>
+    </div>
+
+    <!-- Response Time Chart -->
+    <% if (logs.length > 0) { %>
+        <div class="section">
+            <h2>Response Time (Last 100 Checks)</h2>
+            <div class="chart-container">
+                <canvas id="responseChart"></canvas>
+            </div>
+        </div>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script>
+            const logs = <%- JSON.stringify(logs.slice().reverse()) %>;
+            const ctx = document.getElementById('responseChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: logs.map(l => {
+                        const date = new Date(l.checked_at);
+                        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    }),
+                    datasets: [{
+                        label: 'Response Time (ms)',
+                        data: logs.map(l => l.is_up ? l.response_time_ms : null),
+                        borderColor: '#3498db',
+                        backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        spanGaps: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Response Time (ms)'
+                            }
+                        }
+                    }
+                }
+            });
+        </script>
+    <% } %>
+
+    <!-- Ping Logs Table -->
+    <div class="section">
+        <h2>Ping Logs</h2>
+        <% if (logs.length === 0) { %>
+            <p class="text-muted">No ping logs yet. Monitoring will start shortly.</p>
+        <% } else { %>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Status</th>
+                            <th>Status Code</th>
+                            <th>Response Time</th>
+                            <th>Error</th>
+                            <th>Checked At</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% logs.forEach(log => { %>
+                            <tr class="<%= log.is_up ? '' : 'row-error' %>">
+                                <td>
+                                    <span class="status-badge <%= log.is_up ? 'status-up' : 'status-down' %>">
+                                        <%= log.is_up ? 'Up' : 'Down' %>
+                                    </span>
+                                </td>
+                                <td><%= log.status_code || '-' %></td>
+                                <td><%= log.response_time_ms ? log.response_time_ms + 'ms' : '-' %></td>
+                                <td class="error-cell"><%= log.error_message || '-' %></td>
+                                <td><%= new Date(log.checked_at).toLocaleString() %></td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+        <% } %>
+    </div>
+
+    <!-- Info Card -->
+    <div class="section">
+        <h2>Configuration</h2>
+        <div class="info-grid">
+            <div class="info-item">
+                <span class="info-label">Check Interval</span>
+                <span class="info-value">Every <%= website.check_interval %> minute<%= website.check_interval > 1 ? 's' : '' %></span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Status</span>
+                <span class="info-value"><%= website.is_active ? 'Active' : 'Paused' %></span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Created</span>
+                <span class="info-value"><%= new Date(website.created_at).toLocaleDateString() %></span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Total Checks</span>
+                <span class="info-value"><%= stats.total_checks || 0 %></span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>

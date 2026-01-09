@@ -1,0 +1,65 @@
+<%- include('../partials/header') %>
+
+<div class="container">
+    <div class="page-header">
+        <h1>Edit Website</h1>
+    </div>
+
+    <div class="form-container">
+        <% if (errors && errors.length > 0) { %>
+            <div class="alert alert-error">
+                <% errors.forEach(error => { %>
+                    <p><%= error.msg %></p>
+                <% }) %>
+            </div>
+        <% } %>
+
+        <form action="/websites/<%= website.id %>/edit" method="POST">
+            <div class="form-group">
+                <label for="name">Website Name</label>
+                <input type="text" id="name" name="name" value="<%= formData.name || '' %>" placeholder="My Website" required>
+            </div>
+
+            <div class="form-group">
+                <label for="url">URL</label>
+                <input type="url" id="url" name="url" value="<%= formData.url || '' %>" placeholder="https://example.com" required>
+            </div>
+
+            <div class="form-group">
+                <label for="check_interval">Check Interval (minutes)</label>
+                <select id="check_interval" name="check_interval">
+                    <option value="1" <%= formData.check_interval == 1 ? 'selected' : '' %>>Every 1 minute</option>
+                    <option value="5" <%= formData.check_interval == 5 ? 'selected' : '' %>>Every 5 minutes</option>
+                    <option value="10" <%= formData.check_interval == 10 ? 'selected' : '' %>>Every 10 minutes</option>
+                    <option value="15" <%= formData.check_interval == 15 ? 'selected' : '' %>>Every 15 minutes</option>
+                    <option value="30" <%= formData.check_interval == 30 ? 'selected' : '' %>>Every 30 minutes</option>
+                    <option value="60" <%= formData.check_interval == 60 ? 'selected' : '' %>>Every 60 minutes</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" name="is_active" <%= formData.is_active ? 'checked' : '' %>>
+                    <span>Active (monitoring enabled)</span>
+                </label>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+                <a href="/websites/<%= website.id %>" class="btn btn-outline">Cancel</a>
+            </div>
+        </form>
+
+        <hr class="divider">
+
+        <div class="danger-zone">
+            <h3>Danger Zone</h3>
+            <p>Deleting a website will remove all its monitoring history and cannot be undone.</p>
+            <form action="/websites/<%= website.id %>/delete" method="POST" onsubmit="return confirm('Are you sure you want to delete this website? This action cannot be undone.');">
+                <button type="submit" class="btn btn-danger">Delete Website</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,59 @@
+<%- include('../partials/header') %>
+
+<div class="container">
+    <div class="page-header">
+        <h1>My Websites</h1>
+        <a href="/websites/add" class="btn btn-primary">Add Website</a>
+    </div>
+
+    <% if (websites.length === 0) { %>
+        <div class="empty-state">
+            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+            <h2>No websites yet</h2>
+            <p>Add your first website to start monitoring its uptime.</p>
+            <a href="/websites/add" class="btn btn-primary">Add Website</a>
+        </div>
+    <% } else { %>
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Status</th>
+                        <th>Name</th>
+                        <th>URL</th>
+                        <th>Check Interval</th>
+                        <th>Last Checked</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% websites.forEach(website => { %>
+                        <tr>
+                            <td>
+                                <span class="status-badge <%= website.is_up ? 'status-up' : 'status-down' %>">
+                                    <%= website.is_up ? 'Up' : 'Down' %>
+                                </span>
+                            </td>
+                            <td><a href="/websites/<%= website.id %>"><%= website.name %></a></td>
+                            <td class="url-cell"><%= website.url %></td>
+                            <td><%= website.check_interval %> min</td>
+                            <td>
+                                <% if (website.last_checked_at) { %>
+                                    <%= new Date(website.last_checked_at).toLocaleString() %>
+                                <% } else { %>
+                                    Never
+                                <% } %>
+                            </td>
+                            <td class="actions-cell">
+                                <a href="/websites/<%= website.id %>" class="btn btn-sm">View</a>
+                                <a href="/websites/<%= website.id %>/edit" class="btn btn-sm btn-outline">Edit</a>
+                            </td>
+                        </tr>
+                    <% }) %>
+                </tbody>
+            </table>
+        </div>
+    <% } %>
+</div>
+
+<%- include('../partials/footer') %>
