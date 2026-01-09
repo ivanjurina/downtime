@@ -328,6 +328,31 @@ body {
     width: auto;
 }
 
+/* Status Code Presets */
+.status-code-presets {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+}
+
+.status-code-presets .preset-label {
+    font-size: 0.875rem;
+    color: var(--gray);
+}
+
+.status-code-presets .preset-btn {
+    padding: 4px 10px;
+    font-size: 0.75rem;
+}
+
+.status-code-presets .preset-btn.active {
+    background: var(--primary);
+    color: var(--white);
+    border-color: var(--primary);
+}
+
 /* Alerts */
 .alert {
     padding: 15px;

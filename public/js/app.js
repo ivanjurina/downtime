@@ -96,6 +96,21 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+
+    // Handle status code preset buttons
+    const presetButtons = document.querySelectorAll('.preset-btn');
+    presetButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const codes = this.dataset.codes;
+            const input = document.getElementById('expected_status_codes');
+            if (input) {
+                input.value = codes;
+            }
+            // Update active state
+            presetButtons.forEach(btn => btn.classList.remove('active'));
+            this.classList.add('active');
+        });
+    });
 });
 
 // Helper function to format duration

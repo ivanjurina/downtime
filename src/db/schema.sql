@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS websites (
     url TEXT NOT NULL,
     name TEXT NOT NULL,
     check_interval INTEGER DEFAULT 5, -- minutes
+    expected_status_codes TEXT DEFAULT '200,201,204,301,302', -- comma-separated list of acceptable status codes
     is_active INTEGER DEFAULT 1,
     is_up INTEGER DEFAULT 1,
     last_checked_at DATETIME,

@@ -12,20 +12,34 @@ async function checkWebsite(website) {
     let isUp = false;
     let errorMessage = null;
 
+    // Parse expected status codes from config
+    const expectedCodes = (website.expected_status_codes || '200,201,204,301,302')
+        .split(',')
+        .map(s => parseInt(s.trim(), 10))
+        .filter(n => !isNaN(n));
+
     try {
         const response = await axios.get(website.url, {
             timeout: 30000, // 30 second timeout
             validateStatus: () => true, // Don't throw on any status
             headers: {
                 'User-Agent': 'UptimeMonitor/1.0'
-            }
+            },
+            maxRedirects: 0 // Don't follow redirects so we can see the actual status code
         });
 
         statusCode = response.status;
-        isUp = statusCode >= 200 && statusCode < 400;
+        // Check if status code is in the expected list
+        isUp = expectedCodes.includes(statusCode);
     } catch (error) {
-        errorMessage = error.message;
-        isUp = false;
+        // Handle redirect errors when maxRedirects is 0
+        if (error.response) {
+            statusCode = error.response.status;
+            isUp = expectedCodes.includes(statusCode);
+        } else {
+            errorMessage = error.message;
+            isUp = false;
+        }
     }
 
     const responseTime = Date.now() - startTime;

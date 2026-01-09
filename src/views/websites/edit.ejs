@@ -38,6 +38,18 @@
             </div>
 
             <div class="form-group">
+                <label for="expected_status_codes">Expected Status Codes</label>
+                <input type="text" id="expected_status_codes" name="expected_status_codes" value="<%= formData.expected_status_codes || '200,201,204,301,302' %>" placeholder="200,201,204">
+                <small>Comma-separated HTTP status codes that indicate the site is up (e.g., 200, 201, 204, 301, 302)</small>
+                <div class="status-code-presets">
+                    <span class="preset-label">Quick select:</span>
+                    <button type="button" class="btn btn-sm btn-outline preset-btn" data-codes="200">200 only</button>
+                    <button type="button" class="btn btn-sm btn-outline preset-btn" data-codes="200,201,204">2xx Success</button>
+                    <button type="button" class="btn btn-sm btn-outline preset-btn" data-codes="200,201,204,301,302">Include redirects</button>
+                </div>
+            </div>
+
+            <div class="form-group">
                 <label class="checkbox-label">
                     <input type="checkbox" name="is_active" <%= formData.is_active ? 'checked' : '' %>>
                     <span>Active (monitoring enabled)</span>

@@ -141,6 +141,10 @@
                 <span class="info-value">Every <%= website.check_interval %> minute<%= website.check_interval > 1 ? 's' : '' %></span>
             </div>
             <div class="info-item">
+                <span class="info-label">Expected Status Codes</span>
+                <span class="info-value"><%= website.expected_status_codes || '200,201,204,301,302' %></span>
+            </div>
+            <div class="info-item">
                 <span class="info-label">Status</span>
                 <span class="info-value"><%= website.is_active ? 'Active' : 'Paused' %></span>
             </div>

@@ -28,7 +28,7 @@ router.get('/add', (req, res) => {
     res.render('websites/add', {
         title: 'Add Website',
         errors: [],
-        formData: { check_interval: 5 }
+        formData: { check_interval: 5, expected_status_codes: '200,201,204,301,302' }
     });
 });
 
@@ -36,7 +36,8 @@ router.get('/add', (req, res) => {
 router.post('/add', [
     body('name').trim().notEmpty().withMessage('Name is required'),
     body('url').trim().isURL().withMessage('Please enter a valid URL'),
-    body('check_interval').isInt({ min: 1, max: 60 }).withMessage('Check interval must be between 1 and 60 minutes')
+    body('check_interval').isInt({ min: 1, max: 60 }).withMessage('Check interval must be between 1 and 60 minutes'),
+    body('expected_status_codes').trim().notEmpty().withMessage('At least one status code is required')
 ], (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -47,18 +48,24 @@ router.post('/add', [
         });
     }
 
-    let { name, url, check_interval } = req.body;
+    let { name, url, check_interval, expected_status_codes } = req.body;
 
     // Ensure URL has protocol
     if (!url.startsWith('http://') && !url.startsWith('https://')) {
         url = 'https://' + url;
     }
 
+    // Clean up status codes (remove spaces, validate)
+    expected_status_codes = expected_status_codes.split(',').map(s => s.trim()).filter(s => /^\d{3}$/.test(s)).join(',');
+    if (!expected_status_codes) {
+        expected_status_codes = '200';
+    }
+
     try {
         db.prepare(`
-            INSERT INTO websites (user_id, name, url, check_interval)
-            VALUES (?, ?, ?, ?)
-        `).run(req.session.userId, name, url, check_interval);
+            INSERT INTO websites (user_id, name, url, check_interval, expected_status_codes)
+            VALUES (?, ?, ?, ?, ?)
+        `).run(req.session.userId, name, url, check_interval, expected_status_codes);
 
         res.redirect('/websites');
     } catch (error) {
@@ -149,7 +156,8 @@ router.get('/:id/edit', (req, res) => {
 router.post('/:id/edit', [
     body('name').trim().notEmpty().withMessage('Name is required'),
     body('url').trim().isURL().withMessage('Please enter a valid URL'),
-    body('check_interval').isInt({ min: 1, max: 60 }).withMessage('Check interval must be between 1 and 60 minutes')
+    body('check_interval').isInt({ min: 1, max: 60 }).withMessage('Check interval must be between 1 and 60 minutes'),
+    body('expected_status_codes').trim().notEmpty().withMessage('At least one status code is required')
 ], (req, res) => {
     const website = db.prepare(`
         SELECT * FROM websites
@@ -173,19 +181,25 @@ router.post('/:id/edit', [
         });
     }
 
-    let { name, url, check_interval, is_active } = req.body;
+    let { name, url, check_interval, is_active, expected_status_codes } = req.body;
 
     // Ensure URL has protocol
     if (!url.startsWith('http://') && !url.startsWith('https://')) {
         url = 'https://' + url;
     }
 
+    // Clean up status codes (remove spaces, validate)
+    expected_status_codes = expected_status_codes.split(',').map(s => s.trim()).filter(s => /^\d{3}$/.test(s)).join(',');
+    if (!expected_status_codes) {
+        expected_status_codes = '200';
+    }
+
     try {
         db.prepare(`
             UPDATE websites
-            SET name = ?, url = ?, check_interval = ?, is_active = ?, updated_at = CURRENT_TIMESTAMP
+            SET name = ?, url = ?, check_interval = ?, is_active = ?, expected_status_codes = ?, updated_at = CURRENT_TIMESTAMP
             WHERE id = ? AND user_id = ?
-        `).run(name, url, check_interval, is_active ? 1 : 0, req.params.id, req.session.userId);
+        `).run(name, url, check_interval, is_active ? 1 : 0, expected_status_codes, req.params.id, req.session.userId);
 
         res.redirect(`/websites/${req.params.id}`);
     } catch (error) {
